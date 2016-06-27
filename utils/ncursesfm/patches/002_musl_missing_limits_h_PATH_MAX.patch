@@ -1,0 +1,10 @@
+--- a/inc/declarations.h
++++ b/inc/declarations.h
+@@ -11,6 +11,7 @@
+ #include <libintl.h>
+ #include <archive.h>
+ #include <archive_entry.h>
++#include <limits.h>
+ 
+ #include "version.h"
+ 
