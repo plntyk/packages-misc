@@ -1,0 +1,36 @@
+--- a/lib/roken/roken.h.in
++++ b/lib/roken/roken.h.in
+@@ -1229,33 +1229,6 @@ rk_random(void);
+ int ROKEN_LIB_FUNCTION rk_socket(int, int, int);
+ #endif
+ 
+-/* Microsoft VC 2010 POSIX definitions */
+-#ifndef EAFNOSUPPORT
+-#define EAFNOSUPPORT            102
+-#endif
+-#ifndef EINPROGRESS
+-#define EINPROGRESS             112
+-#endif
+-#ifndef ELOOP
+-#define ELOOP			114
+-#endif
+-#ifndef ENOTSOCK
+-#define ENOTSOCK		128
+-#endif
+-#ifndef ENOTSUP
+-#define ENOTSUP                 129
+-#endif
+-#ifndef EOVERFLOW
+-#define EOVERFLOW               132
+-#endif
+-#ifndef ETIMEDOUT
+-#define ETIMEDOUT               138
+-#endif
+-#ifndef EWOULDBLOCK
+-#define EWOULDBLOCK             140
+-#endif
+-
+-
+ #ifdef SOCKET_WRAPPER_REPLACE
+ #include <socket_wrapper.h>
+ #endif
