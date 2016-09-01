@@ -51,6 +51,20 @@ define Package/samba4-testparm
   URL:=http://www.samba.org
 endef
 
+SAMBA4_IDMAP_MODULES_SHARED := idmap_ad,idmap_rid,idmap_adex,idmap_hash,idmap_tdb2,
+SAMBA4_IDMAP_MODULES_STATIC := 
+SAMBA4_PDB_MODULES_SHARED := pdb_wbc_sam,pdb_samba4,pdb_smbpasswd,pdb_tdbsam,
+SAMBA4_PDB_MODULES_STATIC := 
+SAMBA4_AUTH_MODULES_SHARED := auth_wbc,auth_script,auth_samba4,auth_sam,auth_unix,
+SAMBA4_AUTH_MODULES_STATIC := 
+SAMBA4_VFS_MODULES_SHARED := vfs_default,vfs_aio_pthread
+SAMBA4_VFS_MODULES_STATIC := 
+
+
+SAMBA4_MODULES_SHARED = "${SAMBA4_IDMAP_MODULES_SHARED}${SAMBA4_PDB_MODULES_SHARED}${SAMBA4_AUTH_MODULES_SHARED}${SAMBA4_VFS_MODULES_SHARED}"
+SAMBA4_MODULES_STATIC = "${SAMBA4_IDMAP_MODULES_STATIC}${SAMBA4_PDB_MODULES_STATIC}${SAMBA4_AUTH_MODULES_STATIC}${SAMBA4_VFS_MODULES_STATIC}"
+
+
 EXTRA_CFLAGS += \
 	-ffunction-sections \
 	-fdata-sections \
@@ -89,9 +103,9 @@ SAMBA4_CONF_ARGS:= \
 	--nopyo \
 	--with-configdir=/etc/samba \
 	--with-lockdir=/var/samba/locks \
-	--with-sockets-dir=/var/samba/sockets \
 	--with-piddir=/var/run \
 	--with-privatedir=/var/samba/private \
+	--with-sockets-dir=/var/samba/sockets \
 	--enable-auto-reconfigure \
 	--bundled-libraries='!asn1_compile,!compile_et'
 
