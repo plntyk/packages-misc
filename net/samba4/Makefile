@@ -88,8 +88,8 @@ SAMBA4_CONF_ARGS:= \
 	--nopyc \
 	--nopyo \
 	--with-configdir=/etc/samba \
-	--with-lockdir=/var/samba \
-	--with-sockets-dir=/var/samba \
+	--with-lockdir=/var/samba/locks \
+	--with-sockets-dir=/var/samba/sockets \
 	--with-piddir=/var/run \
 	--with-privatedir=/var/samba/private \
 	--enable-auto-reconfigure \
@@ -223,6 +223,8 @@ endef
 define Package/samba4-server/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/samba4.init $(1)/etc/init.d/samba4
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) ./files/samba4.config $(1)/etc/config/samba4
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/sbin/nmbd $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/sbin/smbd $(1)/usr/sbin

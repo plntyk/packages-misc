@@ -113,11 +113,16 @@ smb_add_share() {
 
 init_config() {
 	# Create samba dirs
-	[ -d /var/lib/samba ] || mkdir -p /var/lib/samba
-	[ -d /var/cache/samba ] || mkdir -p /var/cache/samba
+#	[ -d /var/lib/samba ] || mkdir -p /var/lib/samba
+#	[ -d /var/cache/samba ] || mkdir -p /var/cache/samba
 	[ -d /var/run/samba ] || mkdir -p /var/run/samba
 	[ -d /var/samba/locks ] || mkdir -p /var/samba/locks
+	[ -d /var/samba/socket ] || mkdir -p /var/samba/sockets
+	[ -d /var/samba/locks/cache ] || mkdir -p /var/samba/locks/cache
+	[ -d /var/samba/log ] || mkdir -p /var/samba/log
+	[ -d /var/samba/private ]|| mkdir -p /var/samba/private
 	chmod 0755 /var/samba/locks
+	chmod 0755 /var/samba/locks/cache
 
 	config_load samba4
 	config_foreach smb_header samba
@@ -143,7 +148,7 @@ start_service() {
 		procd_set_param respawn
 		procd_close_instance
 		# lower priority using renice in busybox
-		renice -n 2 $(pidof smbd)
+		# renice -n 2 $(pidof smbd)
 
 		[ "$DISABLENB" != "1" ] && {
 			procd_open_instance
@@ -151,7 +156,7 @@ start_service() {
 			procd_set_param respawn
 			procd_close_instance
 			# lower priority using renice in busybox
-			renice -n 2 $(pidof nmbd)
+			# renice -n 2 $(pidof nmbd)
 		}
 	else
 		echo "samba4 is disabled"
