@@ -44,13 +44,23 @@ define Package/samba4-libs
   URL:=http://www.samba.org
 endef
 
+define Package/samba4-testparm
+  SECTION:=base
+  CATEGORY:=Base
+  TITLE:=samba4 testparm
+  URL:=http://www.samba.org
+endef
+
+EXTRA_CFLAGS += \
+	-ffunction-sections \
+	-fdata-sections \
+	-Wno-deprecated-declarations
+
+EXTRA_LDFLAGS += -Wl,--gc-sections
+
 CONF_ARGS = \
 	--cross-compile \
 	--cross-answers=$(PKG_BUILD_DIR)/target.txt \
-
-
-SAMBA4_CONF_VARS:= HAVE_SECURITY_PAM_APPL_H=0
-
 
 SAMBA4_CONF_ARGS:= \
 	--disable-avahi \
@@ -82,31 +92,22 @@ SAMBA4_CONF_ARGS:= \
 	--with-sockets-dir=/var/samba \
 	--with-piddir=/var/run \
 	--with-privatedir=/var/samba/private \
+	--enable-auto-reconfigure \
 	--bundled-libraries='!asn1_compile,!compile_et'
 
 
 define Build/Prepare
 	$(call Build/Prepare/Default)
-	$(CP) $(TOPDIR)/package/network/services/samba4/target.txt $(PKG_BUILD_DIR)/
+	$(SED) 's#__OPENWRT_SAMBA_MULTICALL__#$(PKG_NAME)_multicall#g' $(PKG_BUILD_DIR)/source3/wscript_build
+	$(CP) ./target.txt $(PKG_BUILD_DIR)/
 	echo "Checking uname machine type: \"$(CONFIG_ARCH)\"" >> $(PKG_BUILD_DIR)/target.txt
 endef
 
-#./build_dir/target-mips_34kc_musl-1.1.14/Python-2.7.11/ipkg-install/usr/bin/python-config
-#	PYTHON_CONFIG="$(TOPDIR)/build_dir/target-mips_34kc_musl-1.1.14/Python-2.7.11/ipkg-install/usr/bin/python-config"
-#	python_prefix="$(STAGING_DIR)/usr"  \
-# CPP=$(TARGET_CROSS)cpp \
-#	python_CFLAGS="-I$(STAGING_DIR)/usr/include/python2.7" \
-#	python_LDFLAGS="-L$(STAGING_DIR)/usr/lib -lpython2.7 -lpthread -ldl -lutil -lm -Xlinker -export-dynamic" \
-#	INCLUDEPY="$(STAGING_DIR)/usr/include/python2.7" \
-
-#	PATH="$(STAGING_DIR)/usr" \
-
 
 PYTHON_ENV:= \
-	PYTHON="$(STAGING_DIR)/host/bin/python2" \
-	PYTHON_CONFIG="$(STAGING_DIR)/host/bin/python-config" \
+	PYTHON_CONFIG="$(STAGING_DIR)/usr/bin/python2-config" \
 	python_LDFLAGS="" \
-	python_LIBDIR="" \
+	python_LIBDIR=""
 
 
 define Build/Configure
@@ -114,21 +115,26 @@ define Build/Configure
 	$(SAMBA4_CONF_VARS) \
 	$(PYTHON_ENV) \
 	$(TARGET_CONFIGURE_OPTS) \
-	./configure \
+	./buildtools/bin/waf configure -j$(shell nproc) \
 	$(CONF_ARGS) \
 	$(SAMBA4_CONF_ARGS) \
 	)
 endef
 
-#define Build/Compile
-#	(cd $(PKG_BUILD_DIR); \
-#	PYTHON=python2 ./configure \
-#	)
-#endef
 
-define Package/samba36-server/conffiles
-/etc/samba/smb.conf
+define Build/Compile
+	(cd $(PKG_BUILD_DIR); \
+		./buildtools/bin/waf build \
+			--targets=$(PKG_NAME)_multicall \
+	)
 endef
+
+define Package/samba4-server/conffiles
+/etc/config/samba4
+/etc/samba/smb.conf.template
+/etc/samba/smbpasswd
+endef
+
 
 define Package/samba4-libs/install
 	$(INSTALL_DIR) $(1)/usr/lib
@@ -215,11 +221,13 @@ define Package/samba4-libs/install
 endef
 
 define Package/samba4-server/install
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/samba4.init $(1)/etc/init.d/samba4
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/sbin/nmbd $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/sbin/smbd $(1)/usr/sbin
 	$(INSTALL_DIR) $(1)/etc/samba
-	$(INSTALL_DATA) ./files/smb.conf $(1)/etc/samba
+	$(INSTALL_DATA) ./files/smb.conf.template $(1)/etc/samba
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libauth-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsmbd-base-samba4.so $(1)/usr/lib
@@ -234,8 +242,7 @@ define Package/samba4-server/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsamba-passdb.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libnetapi.so* $(1)/usr/lib
 endef
-#	$(INSTALL_DIR) $(1)/var/samba/private
-#	$(INSTALL_DIR) $(1)/var/sock
+
 
 define Package/samba4-client/install
 	$(INSTALL_DIR) $(1)/usr/sbin
@@ -243,8 +250,12 @@ define Package/samba4-client/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/nmblookup $(1)/usr/sbin
 endef
 
-$(eval $(call HostBuild))
+define Package/samba4-client/install
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/testparm $(1)/usr/bin
+endef
+
 $(eval $(call BuildPackage,samba4-libs))
 $(eval $(call BuildPackage,samba4-server))
 $(eval $(call BuildPackage,samba4-client))
-
+$(eval $(call BuildPackage,samba4-testparm))
