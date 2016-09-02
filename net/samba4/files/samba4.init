@@ -120,7 +120,8 @@ init_config() {
 	[ -d /var/samba/socket ] || mkdir -p /var/samba/sockets
 	[ -d /var/samba/locks/cache ] || mkdir -p /var/samba/locks/cache
 	[ -d /var/samba/log ] || mkdir -p /var/samba/log
-	[ -d /var/samba/private ]|| mkdir -p /var/samba/private
+	[ -d /var/samba/private ] || mkdir -p /var/samba/private
+	[ -d /var/run/samba/locks/state ] || mkdir -p /var/run/samba/locks/state
 	chmod 0755 /var/samba/locks
 	chmod 0755 /var/samba/locks/cache
 

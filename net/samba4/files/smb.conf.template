@@ -42,6 +42,7 @@
 	lock directory = /var/samba/locks 
 	log file = /var/samba/log/log.%m
 	cache directory = /var/samba/locks/cache
+	state directory = /var/run/samba/locks/state
 
 [share]
 	comment = comment
