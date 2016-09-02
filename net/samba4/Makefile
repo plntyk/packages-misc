@@ -51,15 +51,21 @@ define Package/samba4-testparm
   URL:=http://www.samba.org
 endef
 
+define Package/samba4-multicall
+  SECTION:=base
+  CATEGORY:=Base
+  TITLE:=samba4 multicall binary
+  DEPENDS:=+libcap +libpopt +zlib
+  URL:=http://www.samba.org
+endef
+
 SAMBA4_IDMAP_MODULES_SHARED := idmap_ad,idmap_rid,idmap_adex,idmap_hash,idmap_tdb2,
 SAMBA4_IDMAP_MODULES_STATIC := 
-SAMBA4_PDB_MODULES_SHARED := pdb_wbc_sam,pdb_samba4,pdb_smbpasswd,pdb_tdbsam,
-SAMBA4_PDB_MODULES_STATIC := 
-SAMBA4_AUTH_MODULES_SHARED := auth_wbc,auth_script,auth_samba4,auth_sam,auth_unix,
-SAMBA4_AUTH_MODULES_STATIC := 
-SAMBA4_VFS_MODULES_SHARED := vfs_default,vfs_aio_pthread
-SAMBA4_VFS_MODULES_STATIC := 
-
+SAMBA4_PDB_MODULES_SHARED := pdb_wbc_sam,pdb_samba4,
+SAMBA4_PDB_MODULES_STATIC := pdb_smbpasswd,pdb_tdbsam,
+SAMBA4_AUTH_MODULES_SHARED := auth_wbc,auth_script,auth_samba4
+SAMBA4_AUTH_MODULES_STATIC := auth_sam,auth_unix,
+SAMBA4_VFS_MODULES_STATIC := vfs_default,vfs_aio_pthread
 
 SAMBA4_MODULES_SHARED = "${SAMBA4_IDMAP_MODULES_SHARED}${SAMBA4_PDB_MODULES_SHARED}${SAMBA4_AUTH_MODULES_SHARED}${SAMBA4_VFS_MODULES_SHARED}"
 SAMBA4_MODULES_STATIC = "${SAMBA4_IDMAP_MODULES_STATIC}${SAMBA4_PDB_MODULES_STATIC}${SAMBA4_AUTH_MODULES_STATIC}${SAMBA4_VFS_MODULES_STATIC}"
@@ -89,6 +95,7 @@ SAMBA4_CONF_ARGS:= \
 	--without-ad-dc \
 	--without-automount \
 	--without-cluster-support \
+	--without-dnsupdate \
 	--without-dmapi \
 	--without-fam \
 	--without-gettext \
@@ -97,7 +104,12 @@ SAMBA4_CONF_ARGS:= \
 	--without-libarchive \
 	--without-lttng \
 	--without-pam \
+	--without-pie \
+	--without-quotas \
 	--without-regedit \
+	--without-systemd \
+	--without-utmp \
+	--without-winbind \
 	--hostcc=gcc \
 	--nopyc \
 	--nopyo \
@@ -107,7 +119,12 @@ SAMBA4_CONF_ARGS:= \
 	--with-privatedir=/var/samba/private \
 	--with-sockets-dir=/var/samba/sockets \
 	--enable-auto-reconfigure \
+	--nonshared-binary=$(PKG_NAME)_multicall \
 	--bundled-libraries='!asn1_compile,!compile_et'
+
+#	--with-static-modules=${SAMBA4_MODULES_STATIC} \
+#	--with-shared-modules=${SAMBA4_MODULES_SHARED} \
+#	--bundled-libraries='!asn1_compile,!compile_et,!zlib,popt,talloc,pytalloc,pytalloc-util'
 
 
 define Build/Prepare
@@ -271,7 +288,31 @@ define Package/samba4-client/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/testparm $(1)/usr/bin
 endef
 
+define Package/samba4-multicall/install
+	$(INSTALL_DIR) $(1)/etc/config
+	$(INSTALL_DATA) ./files/$(PKG_NAME).config $(1)/etc/config/samba4
+	$(INSTALL_DIR) $(1)/etc/samba
+	$(INSTALL_DATA) ./files/smb.conf.template $(1)/etc/samba
+	$(INSTALL_DIR) $(1)/etc/init.d
+	$(INSTALL_BIN) ./files/$(PKG_NAME).init $(1)/etc/init.d/samba4
+	$(INSTALL_DIR) $(1)/usr/sbin
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/bin/default/source3/samba4_multicall $(1)/usr/sbin
+	$(LN) samba4_multicall $(1)/usr/sbin/smbd
+	$(LN) samba4_multicall $(1)/usr/sbin/nmbd
+	$(LN) samba4_multicall $(1)/usr/sbin/smbpasswd
+	$(LN) samba4_multicall $(1)/usr/sbin/pdbedit
+	$(INSTALL_DIR) $(1)/usr/bin
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/smbcontrol
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/smbtree
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/smbstatus
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/smbcquotas
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/smbcacls
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/nmblookup
+	$(LN) ../sbin/samba4_multicall $(1)/usr/bin/testparm
+endef
+
 $(eval $(call BuildPackage,samba4-libs))
 $(eval $(call BuildPackage,samba4-server))
 $(eval $(call BuildPackage,samba4-client))
 $(eval $(call BuildPackage,samba4-testparm))
+$(eval $(call BuildPackage,samba4-multicall))
