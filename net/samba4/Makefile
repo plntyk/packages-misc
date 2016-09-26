@@ -24,7 +24,7 @@ define Package/samba4-server
   SECTION:=base
   CATEGORY:=Base
   TITLE:=samba4 SMB/CIFS server
-  DEPENDS:=+samba4-libs
+  DEPENDS:=+samba4-libs +samba4-server-libs
   URL:=http://www.samba.org
 endef
 
@@ -41,6 +41,14 @@ define Package/samba4-libs
   CATEGORY:=Base
   TITLE:=samba4 SMB/CIFS client
   DEPENDS:=+libcap +libpopt +zlib
+  URL:=http://www.samba.org
+endef
+
+define Package/samba4-server-libs
+  SECTION:=base
+  CATEGORY:=Base
+  TITLE:=samba4 SMB/CIFS client libraries
+  DEPENDS:=
   URL:=http://www.samba.org
 endef
 
@@ -175,10 +183,16 @@ define Package/samba4-libs/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libdcerpc-samba-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libgenrand-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/liblibsmb-samba4.so $(1)/usr/lib
+#client
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libpopt-samba3-samba4.so $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsamba-debug-samba4.so $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsamba-util.so* $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libserver-role-samba4.so $(1)/usr/lib
+	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsmbconf.so* $(1)/usr/lib
+
+
 # pam depends?
 #	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libpopt-samba4.so $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsamba-debug-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsamba-security-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsamba-sockets-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsamba3-util-samba4.so $(1)/usr/lib
@@ -187,8 +201,6 @@ define Package/samba4-libs/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libtevent.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libndr-standard.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsamba-errors.so* $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsamba-util.so* $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsmbconf.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libtevent-util.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libutil-cmdline-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libasn1util-samba4.so $(1)/usr/lib
@@ -214,7 +226,6 @@ define Package/samba4-libs/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libsamba-hostconfig.so* $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsecrets3-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libserver-id-db-samba4.so $(1)/usr/lib
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libserver-role-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsmb-transport-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsmbd-shim-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsocket-blocking-samba4.so $(1)/usr/lib
@@ -261,6 +272,9 @@ define Package/samba4-server/install
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/sbin/smbd $(1)/usr/sbin
 	$(INSTALL_DIR) $(1)/etc/samba
 	$(INSTALL_DATA) ./files/smb.conf.template $(1)/etc/samba
+endef
+
+define Package/samba4-server-libs/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libauth-samba4.so $(1)/usr/lib
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/private/libsmbd-base-samba4.so $(1)/usr/lib
@@ -276,14 +290,13 @@ define Package/samba4-server/install
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/local/samba/lib/libnetapi.so* $(1)/usr/lib
 endef
 
-
 define Package/samba4-client/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/smbclient $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/nmblookup $(1)/usr/sbin
 endef
 
-define Package/samba4-client/install
+define Package/samba4-testparm/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/local/samba/bin/testparm $(1)/usr/bin
 endef
@@ -313,6 +326,7 @@ endef
 
 $(eval $(call BuildPackage,samba4-libs))
 $(eval $(call BuildPackage,samba4-server))
+$(eval $(call BuildPackage,samba4-server-libs))
 $(eval $(call BuildPackage,samba4-client))
 $(eval $(call BuildPackage,samba4-testparm))
 $(eval $(call BuildPackage,samba4-multicall))
